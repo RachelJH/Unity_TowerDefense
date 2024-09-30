@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1386431199087922065}
   - component: {fileID: 30694988793170782}
   - component: {fileID: -1732933367737937567}
+  - component: {fileID: -5235776994282393960}
   m_Layer: 0
   m_Name: Enemy01
   m_TagString: Enemy
@@ -113,6 +114,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 280cb516b41a64e49b5ab2545f0c2d0b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gold: 10
 --- !u!58 &-1732933367737937567
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -148,3 +150,16 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
+--- !u!114 &-5235776994282393960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2127381773212237079}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26f50fa7d5289f84eb7debba02b1df6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHP: 5
