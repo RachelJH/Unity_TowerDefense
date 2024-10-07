@@ -3,16 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public enum WeaponState { SearchTarget = 0, AttackToTarget}
+public enum WeaponType { Cannon =0, }
+public enum WeaponState { SearchTarget = 0, TryAttackCannon,}//AttackToTarget}
 
 public class TowerWeapon : MonoBehaviour
 {
+    [Header("Commons")]
     [SerializeField]
     private TowerTemplate towerTemplate;
     [SerializeField]
-    private GameObject projectilePrefab;
-    [SerializeField]
     private Transform spawnPoint;
+    [SerializeField]
+    private WeaponType weaponType;
+
+    [Header("Cannon")]
+    [SerializeField]
+    private GameObject projectilePrefab;
+    
     //[SerializeField]
     //private float attackRate = 0.5f;
     //[SerializeField]
@@ -72,42 +79,50 @@ public class TowerWeapon : MonoBehaviour
 
     private IEnumerator SearchTarget()
     {
-        while(true)
+        while (true)
         {
-            float closestDistSqr = Mathf.Infinity;
+            //float closestDistSqr = Mathf.Infinity;
 
-            for(int i =0; i< enemySpawner.EnemyList.Count; i++)
-            {
-                float distance = Vector3.Distance(enemySpawner.EnemyList[i].transform.position, transform.position);
-                if(distance < towerTemplate.weapon[level].range && distance <= closestDistSqr)
-                {
-                    closestDistSqr = distance;
-                    attackTarget = enemySpawner.EnemyList[i].transform;
-                }
-            }
+            //for(int i =0; i< enemySpawner.EnemyList.Count; i++)
+            //{
+            //    float distance = Vector3.Distance(enemySpawner.EnemyList[i].transform.position, transform.position);
+            //    if(distance < towerTemplate.weapon[level].range && distance <= closestDistSqr)
+            //    {
+            //        closestDistSqr = distance;
+            //        attackTarget = enemySpawner.EnemyList[i].transform;
+            //    }
+
+            attackTarget = FindClosestAttackTarget();
+
             if (attackTarget != null)
             {
-                ChangeState(WeaponState.AttackToTarget);
+                ChangeState(WeaponState.TryAttackCannon);
             }
 
             yield return null;
         }
     }
-
-    private IEnumerator AttackToTarget()
+    
+    //private IEnumerator AttackToTarget()
+    private IEnumerator TryAttackCannon()
     {
         while (true)
         {
-            if(attackTarget == null)
-            {
-                ChangeState(WeaponState.SearchTarget);
-                break;
-            }
+            //if(attackTarget == null)
+            //{
+            //    ChangeState(WeaponState.SearchTarget);
+            //    break;
+            //}
 
-            float distance = Vector3.Distance(attackTarget.position, transform.position);
-            if(distance > towerTemplate.weapon[level].range)
+            //float distance = Vector3.Distance(attackTarget.position, transform.position);
+            //if(distance > towerTemplate.weapon[level].range)
+            //{
+            //    attackTarget = null;
+            //    ChangeState(WeaponState.SearchTarget);
+            //    break;
+            //}
+            if(IsPossibleToAttackTarget() == false)
             {
-                attackTarget = null;
                 ChangeState(WeaponState.SearchTarget);
                 break;
             }
@@ -115,6 +130,39 @@ public class TowerWeapon : MonoBehaviour
 
             SpawnProjectile();
         }
+    }
+
+    private Transform FindClosestAttackTarget()
+    {
+        float closestDistSqr = Mathf.Infinity;
+
+        for(int i=0; i<enemySpawner.EnemyList.Count; i++)
+        {
+            float distance = Vector3.Distance(enemySpawner.EnemyList[i].transform.position, transform.position);
+
+            if(distance <= towerTemplate.weapon[level].range && distance <=closestDistSqr)
+            {
+                closestDistSqr = distance;
+                attackTarget = enemySpawner.EnemyList[i].transform;
+            }
+        }
+        return attackTarget;
+    }
+
+    private bool IsPossibleToAttackTarget()
+    {
+        if(attackTarget == null)
+        {
+            return false;
+        }
+
+        float distance = Vector3.Distance(attackTarget.position, transform.position);
+        if(distance > towerTemplate.weapon[level].range)
+        {
+            attackTarget = null;
+            return false;
+        }
+        return true;
     }
 
     private void SpawnProjectile()

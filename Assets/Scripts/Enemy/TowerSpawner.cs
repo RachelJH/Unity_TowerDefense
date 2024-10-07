@@ -16,13 +16,38 @@ public class TowerSpawner : MonoBehaviour
     private PlayerGold playerGold;
     [SerializeField]
     private SystemTextViewer systemTextViewer;
-    public void SpawnTower(Transform tileTransform)
+    private bool isOnTowerButton = false;
+    private GameObject followTowerClone = null;
+
+    public void ReadyToSpawnTower()
     {
-        if(towerTemplate.weapon[0].cost > playerGold.CurrentGold)
+        if(isOnTowerButton == true)
+        {
+            return;
+        }
+
+        if (towerTemplate.weapon[0].cost > playerGold.CurrentGold)
         {
             systemTextViewer.PrintText(SystemType.Money);
             return;
         }
+        isOnTowerButton = true;
+        followTowerClone = Instantiate(towerTemplate.followTowerPrefab);
+
+        StartCoroutine("OnTowerCancelSystem");
+    }
+
+    public void SpawnTower(Transform tileTransform)
+    {
+        if(isOnTowerButton==false)
+        {
+            return;
+        }
+        //if(towerTemplate.weapon[0].cost > playerGold.CurrentGold)
+        //{
+        //    systemTextViewer.PrintText(SystemType.Money);
+        //    return;
+        //}
 
         Tile tile = tileTransform.GetComponent<Tile>();
 
@@ -33,6 +58,7 @@ public class TowerSpawner : MonoBehaviour
             return;
         }
 
+        isOnTowerButton = false;
         tile.IsBuildTower = true;
         //playerGold.CurrentGold -= towerBulidGold;
         playerGold.CurrentGold -= towerTemplate.weapon[0].cost;
@@ -42,5 +68,22 @@ public class TowerSpawner : MonoBehaviour
         GameObject clone = Instantiate(towerTemplate.towerPrefab, position, Quaternion.identity);
 
         clone.GetComponent<TowerWeapon>().SetUp(enemySpawner, playerGold,tile);
+
+        Destroy(followTowerClone);
+        StopCoroutine("OnTowerCancelSystem");
+    }
+
+    private IEnumerator OnTowerCancelSystem()
+    {
+        while (true)
+        {
+            if (Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1))
+            {
+                isOnTowerButton = false;
+                Destroy(followTowerClone);
+                break;
+            }
+            yield return null;
+        }
     }
 }
