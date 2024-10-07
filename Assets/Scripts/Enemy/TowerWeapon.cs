@@ -1,10 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public enum WeaponType { Cannon =0, }
-public enum WeaponState { SearchTarget = 0, TryAttackCannon,}//AttackToTarget}
+public enum WeaponType { Cannon =0, Laser, }
+public enum WeaponState { SearchTarget = 0, TryAttackCannon, TryAttackLaser}//AttackToTarget}
 
 public class TowerWeapon : MonoBehaviour
 {
@@ -19,6 +20,15 @@ public class TowerWeapon : MonoBehaviour
     [Header("Cannon")]
     [SerializeField]
     private GameObject projectilePrefab;
+
+    [Header("Laser")]
+    [SerializeField]
+    private LineRenderer lineRenderer;
+    [SerializeField]
+    private Transform hitEffect;
+    [SerializeField]
+    private LayerMask targetLayer;
+
     
     //[SerializeField]
     //private float attackRate = 0.5f;
@@ -81,22 +91,19 @@ public class TowerWeapon : MonoBehaviour
     {
         while (true)
         {
-            //float closestDistSqr = Mathf.Infinity;
-
-            //for(int i =0; i< enemySpawner.EnemyList.Count; i++)
-            //{
-            //    float distance = Vector3.Distance(enemySpawner.EnemyList[i].transform.position, transform.position);
-            //    if(distance < towerTemplate.weapon[level].range && distance <= closestDistSqr)
-            //    {
-            //        closestDistSqr = distance;
-            //        attackTarget = enemySpawner.EnemyList[i].transform;
-            //    }
 
             attackTarget = FindClosestAttackTarget();
 
             if (attackTarget != null)
             {
-                ChangeState(WeaponState.TryAttackCannon);
+                if(weaponType == WeaponType.Cannon)
+                {
+                    ChangeState(WeaponState.TryAttackCannon);
+                }
+                else if (weaponType == WeaponType.Laser)
+                {
+                    ChangeState(WeaponState.TryAttackLaser);
+                }
             }
 
             yield return null;
@@ -132,6 +139,23 @@ public class TowerWeapon : MonoBehaviour
         }
     }
 
+    private IEnumerator TryAttackLaser()
+    {
+        EnableLaser();
+
+        while (true)
+        {
+            if( IsPossibleToAttackTarget() == false)
+            {
+                DisableLaser();
+                ChangeState(WeaponState.SearchTarget);
+                break;
+            }
+            SpawnLaser();
+
+            yield return null;
+        }
+    }
     private Transform FindClosestAttackTarget()
     {
         float closestDistSqr = Mathf.Infinity;
@@ -172,6 +196,35 @@ public class TowerWeapon : MonoBehaviour
 
     }
 
+    private void EnableLaser()
+    {
+        lineRenderer.gameObject.SetActive(true);
+        hitEffect.gameObject.SetActive(true);
+    }
+
+    private void DisableLaser()
+    {
+        lineRenderer.gameObject.SetActive(false);
+        hitEffect.gameObject.SetActive(false);
+    }
+
+    private void SpawnLaser()
+    {
+        Vector3 direction = attackTarget.position - spawnPoint.position;
+        RaycastHit2D[] hit = Physics2D.RaycastAll(spawnPoint.position, direction, towerTemplate.weapon[level].range, targetLayer);
+
+        for (int i = 0; i < hit.Length; i++)
+        {
+            if (hit[i].transform == attackTarget)
+            {
+                lineRenderer.SetPosition(0, spawnPoint.position);
+                lineRenderer.SetPosition(1, new Vector3(hit[i].point.x, hit[i].point.y, 0) + Vector3.back);
+                hitEffect.position = hit[i].point;
+                attackTarget.GetComponent<EnemyHP>().TakeDamage(towerTemplate.weapon[level].damage * Time.deltaTime);
+            }
+        }
+    }
+
     public bool Upgrade()
     {
         if(playerGold.CurrentGold < towerTemplate.weapon[level + 1].cost)
@@ -181,6 +234,12 @@ public class TowerWeapon : MonoBehaviour
         level++;
         spriteRenderer.sprite = towerTemplate.weapon[level].sprite;
         playerGold.CurrentGold -= towerTemplate.weapon[level].cost;
+
+        if(weaponType == WeaponType.Laser)
+        {
+            lineRenderer.startWidth = 0.05f + level * 0.05f;
+            lineRenderer.endWidth = 0.05f;
+        }
 
         return true;
     }

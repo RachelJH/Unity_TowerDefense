@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Tower02Laser
   m_EditorClassIdentifier: 
   towerPrefab: {fileID: 5579783707709011423, guid: 3fc6573a3c89f724bb25e72bba96eeba, type: 3}
-  followTowerPrefab: {fileID: 529697315997609221, guid: 9b06354479bab4b4eaa32d20850a2fcb, type: 3}
+  followTowerPrefab: {fileID: 529697315997609221, guid: 1da2efc538ab7d449ac8773059dc7e29, type: 3}
   weapon:
   - sprite: {fileID: 21300000, guid: f4be218c0e819ac4fbf9ebd8a4687012, type: 3}
     damage: 1.5
